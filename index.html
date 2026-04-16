@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureNet AI - Network Intrusion Detection System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        body { background: #ffffff; color: #1E293B; }
+
+        /* Navbar */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            padding: 0 24px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-icon { background: #2563EB; padding: 8px; border-radius: 8px; }
+        .logo-title { font-size: 18px; font-weight: 700; color: #0F172A; }
+        .logo-sub { font-size: 11px; color: #64748B; }
+        .nav-cta {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #2563EB; color: white; text-decoration: none;
+            padding: 9px 20px; border-radius: 7px; font-size: 14px; font-weight: 600;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .nav-cta:hover { background: #1D4ED8; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        .nav-link {
+            color: #475569; text-decoration: none; font-size: 14px; font-weight: 500;
+            padding: 8px 14px; border-radius: 6px; transition: background 0.2s;
+            margin-right: 4px;
+        }
+        .nav-link:hover { background: #F1F5F9; }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(160deg, #1E3A5F 0%, #2563EB 55%, #3B82F6 100%);
+            padding: 120px 24px 80px;
+        }
+        .hero-inner { max-width: 1200px; margin: 0 auto; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 50px; padding: 6px 16px; margin-bottom: 28px;
+            font-size: 13px; color: white; font-weight: 500;
+        }
+        .hero h1 {
+            font-size: 48px; font-weight: 800; color: white;
+            line-height: 1.18; margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+        .hero h1 .line1 { color: #ffffff; display: block; }
+        .hero h1 .line2 { color: #BAE6FD; display: block; }
+        .hero h1 .line3 { color: #BAE6FD; display: block; }
+        @media (max-width: 900px) { .hero h1 { font-size: 34px; } }
+        @media (max-width: 600px) { .hero h1 { font-size: 26px; } }
+        .hero p { font-size: 18px; color: rgba(255,255,255,0.85); line-height: 1.7; max-width: 640px; margin-bottom: 40px; }
+        .btn-hero-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: white; color: #1E40AF; text-decoration: none;
+            padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 700;
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .btn-hero-primary:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.15); transform: translateY(-1px); }
+        .btn-hero-secondary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.15); color: white; text-decoration: none;
+            padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.35); margin-left: 14px;
+            transition: background 0.2s;
+        }
+        .btn-hero-secondary:hover { background: rgba(255,255,255,0.25); }
+        .hero-stats {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 24px; margin-top: 64px; max-width: 800px;
+        }
+        .hero-stat-val { font-size: 36px; font-weight: 800; color: white; }
+        .hero-stat-lbl { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+        /* Sections */
+        .section { padding: 80px 24px; }
+        .section-inner { max-width: 1200px; margin: 0 auto; }
+        .section-label {
+            display: inline-block; background: #EFF6FF; color: #2563EB;
+            font-size: 12px; font-weight: 700; padding: 4px 12px;
+            border-radius: 50px; letter-spacing: 0.05em; text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .section-title { font-size: 36px; font-weight: 700; color: #0F172A; margin-bottom: 12px; }
+        .section-sub { font-size: 16px; color: #64748B; line-height: 1.7; max-width: 560px; margin: 0 auto; }
+
+        /* Cards */
+        .card {
+            background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+            padding: 28px; transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: translateY(-3px); }
+        .card-icon {
+            width: 52px; height: 52px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; margin-bottom: 18px;
+        }
+        .card-title { font-size: 17px; font-weight: 700; color: #0F172A; margin-bottom: 8px; }
+        .card-text { font-size: 14px; color: #64748B; line-height: 1.6; }
+        .card-tag {
+            display: inline-block; margin-top: 14px; font-size: 12px; font-weight: 600;
+            padding: 3px 10px; border-radius: 50px;
+        }
+
+        /* Steps */
+        .step-num {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: #2563EB; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800; margin: 0 auto 20px;
+        }
+
+        /* Features list */
+        .feature-row { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid #F1F5F9; }
+        .feature-row:last-child { border-bottom: none; }
+        .feature-icon-box {
+            width: 40px; height: 40px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+
+        /* Mock dashboard card */
+        .mock-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
+        .mock-header { background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 14px 20px; font-size: 13px; font-weight: 600; color: #475569; }
+        .mock-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px; border-bottom: 1px solid #F1F5F9;
+        }
+        .mock-row:last-child { border-bottom: none; }
+
+        /* CTA */
+        .cta-section {
+            background: linear-gradient(135deg, #1E3A5F, #2563EB);
+            padding: 80px 24px; text-align: center;
+        }
+
+        /* Footer */
+        footer { background: #0F172A; padding: 60px 24px 32px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-link { color: rgba(255,255,255,0.55); font-size: 13px; display: block; margin-bottom: 8px; }
+        .footer-heading { color: white; font-size: 13px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 36px; }
+            .hero-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <i class="bi bi-shield-check text-white" style="font-size: 20px;"></i>
+                </div>
+                <div>
+                    <div class="logo-title">SecureNet AI</div>
+                    <div class="logo-sub">Network Intrusion Detection</div>
+                </div>
+            </a>
+            <div style="display:flex; align-items:center;">
+                <a href="/login" class="nav-link hidden sm:inline-block">Sign In</a>
+                <a href="/signup" class="nav-cta">
+                    Get Started <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge">
+                <i class="bi bi-cpu-fill"></i>
+                CNN Attention Fusion Architecture · Healthcare Cybersecurity
+            </div>
+            <h1>
+                <span class="line1">Optimized CNN Attention Fusion Architecture:</span>
+                <span class="line2">Extensive Multi-Source Benchmark Evaluation</span>
+                <span class="line3">Across Healthcare Cyber Datasets with<br>Robustness-Driven Patient Data Protection</span>
+            </h1>
+            <p>Advanced CNN attention fusion models evaluated across multiple healthcare cybersecurity datasets — delivering real-time intrusion detection with robustness-driven protection for sensitive patient data.</p>
+            <div>
+                <a href="/signup" class="btn-hero-primary">
+                    <i class="bi bi-play-fill"></i> Start Monitoring
+                </a>
+                <a href="#features" class="btn-hero-secondary">
+                    Learn More <i class="bi bi-chevron-down"></i>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div>
+                    <div class="hero-stat-val">15</div>
+                    <div class="hero-stat-lbl">Attack Types Detected</div>
+                </div>
+                <div>
+                    <div class="hero-stat-val">97.4%</div>
+                    <div class="hero-stat-lbl">Model Accuracy</div>
+                </div>
+                <div>
+                    <div class="hero-stat-val">CNN-LSTM</div>
+                    <div class="hero-stat-lbl">Deep Learning Model</div>
+                </div>
+                <div>
+                    <div class="hero-stat-val">Real-time</div>
+                    <div class="hero-stat-lbl">Threat Detection</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Attack Detection -->
+    <section id="features" class="section" style="background:#FAFBFC;">
+        <div class="section-inner">
+            <div style="text-align:center; margin-bottom:56px;">
+                <div class="section-label">Detection Capabilities</div>
+                <div class="section-title">Attack Types We Detect</div>
+                <p class="section-sub">Comprehensive threat identification across multiple network attack vectors using the CICIDS 2017 benchmark dataset.</p>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:24px;">
+
+                <div class="card">
+                    <div class="card-icon" style="background:#EFF6FF;">
+                        <i class="bi bi-hdd-network-fill" style="color:#2563EB;"></i>
+                    </div>
+                    <div class="card-title">DoS / DDoS</div>
+                    <p class="card-text">Detect distributed denial of service attacks flooding network infrastructure and consuming bandwidth.</p>
+                    <span class="card-tag" style="background:#FEF2F2; color:#DC2626;">High Priority</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon" style="background:#F0FDF4;">
+                        <i class="bi bi-search" style="color:#16A34A;"></i>
+                    </div>
+                    <div class="card-title">Port Scanning</div>
+                    <p class="card-text">Identify reconnaissance attempts and network enumeration activities used in pre-attack phases.</p>
+                    <span class="card-tag" style="background:#FFFBEB; color:#D97706;">Medium Priority</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon" style="background:#F5F3FF;">
+                        <i class="bi bi-key-fill" style="color:#7C3AED;"></i>
+                    </div>
+                    <div class="card-title">Brute Force</div>
+                    <p class="card-text">Monitor SSH, FTP, and web login brute force credential attack attempts in real time.</p>
+                    <span class="card-tag" style="background:#FEF2F2; color:#DC2626;">High Priority</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon" style="background:#FFF7ED;">
+                        <i class="bi bi-bug-fill" style="color:#EA580C;"></i>
+                    </div>
+                    <div class="card-title">Web Attacks</div>
+                    <p class="card-text">Detect SQL injection, XSS, and other web application exploits targeting HTTP services.</p>
+                    <span class="card-tag" style="background:#FEF2F2; color:#DC2626;">Critical</span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section" style="background:white;">
+        <div class="section-inner">
+            <div style="text-align:center; margin-bottom:56px;">
+                <div class="section-label">How It Works</div>
+                <div class="section-title">Three-Step AI Pipeline</div>
+                <p class="section-sub">Advanced deep learning pipeline for real-time network threat detection and classification.</p>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:40px; text-align:center;">
+
+                <div>
+                    <div class="step-num">1</div>
+                    <h3 style="font-size:18px; font-weight:700; color:#0F172A; margin-bottom:10px;">Traffic Monitoring</h3>
+                    <p style="font-size:14px; color:#64748B; line-height:1.7;">Continuous analysis of network packets and flow patterns using real-time data streams from the CICIDS dataset.</p>
+                </div>
+
+                <div>
+                    <div class="step-num" style="background:#7C3AED;">2</div>
+                    <h3 style="font-size:18px; font-weight:700; color:#0F172A; margin-bottom:10px;">CNN-LSTM Analysis</h3>
+                    <p style="font-size:14px; color:#64748B; line-height:1.7;">Deep learning models extract spatial and temporal features from network flows for accurate attack classification.</p>
+                </div>
+
+                <div>
+                    <div class="step-num" style="background:#16A34A;">3</div>
+                    <h3 style="font-size:18px; font-weight:700; color:#0F172A; margin-bottom:10px;">Instant Alerts</h3>
+                    <p style="font-size:14px; color:#64748B; line-height:1.7;">Automated email notifications and live dashboard alerts trigger immediately upon threat detection.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Features + Mock Dashboard -->
+    <section class="section" style="background:#FAFBFC;">
+        <div class="section-inner">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center;">
+                <div>
+                    <div class="section-label">Platform Features</div>
+                    <h2 style="font-size:32px; font-weight:700; color:#0F172A; margin-bottom:12px;">Advanced Security Capabilities</h2>
+                    <p style="font-size:15px; color:#64748B; line-height:1.7; margin-bottom:32px;">Comprehensive network protection with intelligent threat response and configurable monitoring.</p>
+
+                    <div>
+                        <div class="feature-row">
+                            <div class="feature-icon-box" style="background:#EFF6FF;">
+                                <i class="bi bi-lightning-charge" style="color:#2563EB;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:15px; font-weight:700; color:#0F172A; margin-bottom:4px;">Real-time Processing</div>
+                                <div style="font-size:13px; color:#64748B; line-height:1.6;">Sub-second threat detection with live network traffic analysis</div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="feature-icon-box" style="background:#F0FDF4;">
+                                <i class="bi bi-envelope-exclamation" style="color:#16A34A;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:15px; font-weight:700; color:#0F172A; margin-bottom:4px;">Email Alerts</div>
+                                <div style="font-size:13px; color:#64748B; line-height:1.6;">Instant notifications for high-confidence threat detections via SMTP</div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="feature-icon-box" style="background:#F5F3FF;">
+                                <i class="bi bi-graph-up" style="color:#7C3AED;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:15px; font-weight:700; color:#0F172A; margin-bottom:4px;">Live Dashboard</div>
+                                <div style="font-size:13px; color:#64748B; line-height:1.6;">Interactive monitoring with real-time charts and attack logs</div>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="feature-icon-box" style="background:#FFF7ED;">
+                                <i class="bi bi-sliders" style="color:#EA580C;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:15px; font-weight:700; color:#0F172A; margin-bottom:4px;">Configurable Thresholds</div>
+                                <div style="font-size:13px; color:#64748B; line-height:1.6;">Adjustable confidence thresholds for your security posture</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mock Dashboard Preview -->
+                <div>
+                    <div style="background:white; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.08);">
+                        <div style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; padding:16px 20px; display:flex; align-items:center; gap:8px;">
+                            <div style="width:10px;height:10px;border-radius:50%;background:#EF4444;"></div>
+                            <div style="width:10px;height:10px;border-radius:50%;background:#F59E0B;"></div>
+                            <div style="width:10px;height:10px;border-radius:50%;background:#22C55E;"></div>
+                            <span style="font-size:12px; color:#94A3B8; margin-left:8px;">Network Detection Log</span>
+                        </div>
+                        <div style="padding:20px;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                                <div style="background:#EFF6FF; border-radius:8px; padding:14px;">
+                                    <div style="font-size:22px; font-weight:800; color:#2563EB;">247</div>
+                                    <div style="font-size:12px; color:#64748B; margin-top:2px;">Total Detections</div>
+                                </div>
+                                <div style="background:#FEF2F2; border-radius:8px; padding:14px;">
+                                    <div style="font-size:22px; font-weight:800; color:#DC2626;">12</div>
+                                    <div style="font-size:12px; color:#64748B; margin-top:2px;">Active Threats</div>
+                                </div>
+                            </div>
+                            <div class="mock-card">
+                                <div class="mock-header">Recent Detections</div>
+                                <div class="mock-row">
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:#0F172A;">DoS Attack</div>
+                                        <div style="font-size:11px;color:#94A3B8;">192.168.1.55 → 10.0.0.1</div>
+                                    </div>
+                                    <span style="background:#FEF2F2;color:#DC2626;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">THREAT · 89%</span>
+                                </div>
+                                <div class="mock-row">
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:#0F172A;">Port Scan</div>
+                                        <div style="font-size:11px;color:#94A3B8;">10.0.1.3 → 192.168.0.1</div>
+                                    </div>
+                                    <span style="background:#FFFBEB;color:#D97706;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">WARN · 76%</span>
+                                </div>
+                                <div class="mock-row">
+                                    <div>
+                                        <div style="font-size:13px;font-weight:600;color:#0F172A;">BENIGN</div>
+                                        <div style="font-size:11px;color:#94A3B8;">10.0.0.5 → 172.16.0.2</div>
+                                    </div>
+                                    <span style="background:#F0FDF4;color:#16A34A;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;">SAFE · 99%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div style="max-width:600px; margin:0 auto;">
+            <h2 style="font-size:36px; font-weight:800; color:white; margin-bottom:14px;">Secure Your Network Today</h2>
+            <p style="font-size:17px; color:rgba(255,255,255,0.85); margin-bottom:36px; line-height:1.7;">Deploy advanced AI-powered intrusion detection in minutes. No complex setup required.</p>
+            <a href="/signup" style="display:inline-flex; align-items:center; gap:8px; background:white; color:#1E40AF; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:15px; font-weight:700; transition: box-shadow 0.2s;">
+                <i class="bi bi-play-fill"></i> Start Monitoring Free
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-inner">
+            <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:48px;">
+                <div>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                        <div style="background:#2563EB; padding:7px; border-radius:7px;">
+                            <i class="bi bi-shield-check text-white"></i>
+                        </div>
+                        <span style="font-size:16px; font-weight:700; color:white;">SecureNet AI</span>
+                    </div>
+                    <p style="color:rgba(255,255,255,0.5); font-size:13px; line-height:1.7;">CNN-LSTM powered network intrusion detection system built on the CICIDS 2017 dataset.</p>
+                </div>
+                <div>
+                    <div class="footer-heading">Detection</div>
+                    <a class="footer-link">DoS / DDoS</a>
+                    <a class="footer-link">Port Scanning</a>
+                    <a class="footer-link">Brute Force</a>
+                    <a class="footer-link">Web Exploits</a>
+                </div>
+                <div>
+                    <div class="footer-heading">Platform</div>
+                    <a class="footer-link">Real-time Monitor</a>
+                    <a class="footer-link">Email Alerts</a>
+                    <a class="footer-link">Live Dashboard</a>
+                    <a class="footer-link">CNN-LSTM Models</a>
+                </div>
+                <div>
+                    <div class="footer-heading">Contact</div>
+                    <a class="footer-link">yoosufsulbi2004@gmail.com</a>
+                    <a class="footer-link">Yoosuf S</a>
+                </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:24px; display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:13px; color:rgba(255,255,255,0.4);">© 2024 SecureNet AI. All rights reserved.</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <i class="bi bi-shield-check" style="color:#22C55E; font-size:13px;"></i>
+                    <span style="font-size:12px; color:rgba(255,255,255,0.4);">Secured Platform</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

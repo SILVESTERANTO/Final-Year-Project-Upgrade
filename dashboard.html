@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Monitoring Dashboard - SecureNet AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        body { background: #F8FAFC; color: #1E293B; margin: 0; }
+
+        /* Navbar */
+        .navbar {
+            background: white; border-bottom: 1px solid #E2E8F0;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-inner {
+            max-width: 1400px; margin: 0 auto; padding: 0 24px;
+            height: 60px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { background: #2563EB; padding: 7px; border-radius: 7px; display: flex; }
+        .logo-title { font-size: 16px; font-weight: 700; color: #0F172A; }
+        .logo-sub { font-size: 11px; color: #64748B; }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 600;
+        }
+        .status-active { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+        .status-inactive { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .btn-signout {
+            color: #64748B; text-decoration: none; font-size: 13px; font-weight: 500;
+            padding: 7px 14px; border-radius: 6px; border: 1px solid #E2E8F0;
+            transition: background 0.2s;
+        }
+        .btn-signout:hover { background: #F1F5F9; }
+
+        /* Main layout */
+        .main { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+
+        /* Stat cards */
+        .stat-card {
+            background: white; border: 1px solid #E2E8F0; border-radius: 10px;
+            padding: 20px 24px; display: flex; align-items: center; gap: 16px;
+        }
+        .stat-icon {
+            width: 44px; height: 44px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .stat-val { font-size: 26px; font-weight: 700; color: #0F172A; line-height: 1; }
+        .stat-lbl { font-size: 13px; color: #64748B; margin-top: 4px; }
+
+        /* Panels */
+        .panel {
+            background: white; border: 1px solid #E2E8F0; border-radius: 10px;
+            overflow: hidden;
+        }
+        .panel-header {
+            padding: 18px 24px; border-bottom: 1px solid #E2E8F0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .panel-title { font-size: 15px; font-weight: 700; color: #0F172A; }
+        .panel-body { padding: 20px 24px; }
+
+        /* Control buttons */
+        .btn-start {
+            flex: 1; padding: 12px; border-radius: 8px; border: none; cursor: pointer;
+            font-size: 14px; font-weight: 600; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            background: #2563EB; color: white;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-start:hover:not(:disabled) { background: #1D4ED8; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        .btn-start:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-stop {
+            flex: 1; padding: 12px; border-radius: 8px; border: none; cursor: pointer;
+            font-size: 14px; font-weight: 600; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            background: #EF4444; color: white;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-stop:hover:not(:disabled) { background: #DC2626; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+        .btn-stop:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Threshold slider */
+        .threshold-row { display: flex; align-items: center; gap: 12px; }
+        .threshold-row label { font-size: 13px; font-weight: 500; color: #475569; white-space: nowrap; }
+        input[type=range] {
+            -webkit-appearance: none; appearance: none;
+            height: 4px; border-radius: 2px; background: #E2E8F0;
+            cursor: pointer; flex: 1;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px;
+            border-radius: 50%; background: #2563EB; cursor: pointer;
+        }
+        .threshold-val {
+            font-size: 13px; font-weight: 700; color: #2563EB;
+            background: #EFF6FF; padding: 4px 10px; border-radius: 50px;
+            min-width: 48px; text-align: center;
+        }
+
+        /* Status bar */
+        .status-bar {
+            border-radius: 8px; padding: 12px 16px; margin-top: 16px;
+            display: flex; align-items: center; gap: 10px; font-size: 13px;
+        }
+        .status-bar-active { background: #F0FDF4; border: 1px solid #BBF7D0; color: #15803D; }
+        .status-bar-inactive { background: #F8FAFC; border: 1px solid #E2E8F0; color: #64748B; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            padding: 12px 20px; text-align: left;
+            font-size: 11px; font-weight: 700; color: #64748B;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            background: #F8FAFC; border-bottom: 1px solid #E2E8F0;
+        }
+        tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #FAFBFC; }
+        tbody td { padding: 13px 20px; font-size: 13px; color: #374151; }
+        .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+
+        .badge {
+            display: inline-block; padding: 3px 10px; border-radius: 50px;
+            font-size: 11px; font-weight: 700;
+        }
+        .badge-threat { background: #FEF2F2; color: #DC2626; }
+        .badge-safe { background: #F0FDF4; color: #16A34A; }
+        .badge-type { background: #F1F5F9; color: #475569; }
+
+        .btn-clear {
+            padding: 7px 14px; background: white; border: 1px solid #E2E8F0;
+            border-radius: 6px; font-size: 13px; font-weight: 500; color: #64748B;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-clear:hover { background: #F1F5F9; }
+
+        .empty-state {
+            text-align: center; padding: 56px 24px;
+            color: #94A3B8;
+        }
+        .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="bi bi-shield-check text-white" style="font-size:18px;"></i>
+                </div>
+                <div>
+                    <div class="logo-title">SecureNet AI</div>
+                    <div class="logo-sub">Network Monitoring</div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div id="statusBadge" class="status-badge status-inactive">
+                    <div class="status-dot"></div>
+                    <span id="statusText">System Idle</span>
+                </div>
+                <a href="/logout" class="btn-signout">
+                    <i class="bi bi-box-arrow-right"></i> Sign Out
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <div class="main">
+
+        <!-- Page header -->
+        <div style="margin-bottom:24px;">
+            <h1 style="font-size:22px; font-weight:700; color:#0F172A; margin-bottom:4px;">Network Intrusion Detection Dashboard</h1>
+            <p style="font-size:14px; color:#64748B;">Real-time monitoring and threat analysis powered by CNN-LSTM deep learning models</p>
+        </div>
+
+        <!-- Stats Row -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#EFF6FF;">
+                    <i class="bi bi-shield-check" style="color:#2563EB;"></i>
+                </div>
+                <div>
+                    <div class="stat-val" id="totalDetections">0</div>
+                    <div class="stat-lbl">Total Detections</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#FEF2F2;">
+                    <i class="bi bi-exclamation-triangle" style="color:#DC2626;"></i>
+                </div>
+                <div>
+                    <div class="stat-val" id="threatCount" style="color:#DC2626;">0</div>
+                    <div class="stat-lbl">Active Threats</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#F0FDF4;">
+                    <i class="bi bi-cpu" style="color:#16A34A;"></i>
+                </div>
+                <div>
+                    <div class="stat-val" id="modelAccuracy" style="color:#16A34A;">97.4%</div>
+                    <div class="stat-lbl">Model Accuracy</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#F5F3FF;">
+                    <i class="bi bi-clock" style="color:#7C3AED;"></i>
+                </div>
+                <div>
+                    <div class="stat-val" id="uptime" style="color:#7C3AED;">00:00</div>
+                    <div class="stat-lbl">Monitoring Time</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls + Chart Row -->
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px;">
+
+            <!-- Control Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Simulation Control</div>
+                    <div class="threshold-row">
+                        <label>Alert Threshold</label>
+                        <input type="range" id="thresholdSlider" min="0.1" max="1" step="0.1" value="0.8">
+                        <span class="threshold-val" id="thresholdValue">80%</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div style="display:flex; gap:12px; margin-bottom:16px;">
+                        <button id="startBtn" class="btn-start">
+                            <i class="bi bi-play-fill"></i> Start Simulation
+                        </button>
+                        <button id="stopBtn" class="btn-stop" disabled>
+                            <i class="bi bi-stop-fill"></i> Stop Simulation
+                        </button>
+                    </div>
+                    <div id="simulationStatus" class="status-bar status-bar-inactive">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span id="statusMsg">Network monitoring is idle. Click Start to begin simulation.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Attack Distribution</div>
+                </div>
+                <div class="panel-body">
+                    <div style="height: 200px; position: relative;">
+                        <canvas id="attackChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection Log -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="bi bi-list-ul" style="color:#64748B; margin-right:6px;"></i>
+                    Real-time Detection Log
+                </div>
+                <button onclick="clearLog()" class="btn-clear">
+                    <i class="bi bi-trash3"></i> Clear Log
+                </button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Source IP</th>
+                            <th>Dest IP</th>
+                            <th>Attack Type</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detectionTable">
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="bi bi-shield-slash"></i>
+                                    <p>No detections yet. Start simulation to begin monitoring.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /main -->
+
+    <script>
+        let simulationRunning = false;
+        let startTime = null;
+        let uptimeInterval = null;
+        let attackChart = null;
+        let attackCounts = {};
+
+        function initializeChart() {
+            const ctx = document.getElementById('attackChart').getContext('2d');
+            attackChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['BENIGN', 'DoS', 'PortScan', 'DDoS', 'Brute Force', 'Web Attack'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#22C55E','#EF4444','#F59E0B','#3B82F6','#8B5CF6','#EC4899'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 11 }, padding: 12 }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateUptime() {
+            if (startTime) {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('uptime').textContent =
+                    `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+            }
+        }
+
+        function setStatus(msg, active) {
+            const bar = document.getElementById('simulationStatus');
+            const badge = document.getElementById('statusBadge');
+            const badgeText = document.getElementById('statusText');
+            document.getElementById('statusMsg').textContent = msg;
+            if (active) {
+                bar.className = 'status-bar status-bar-active';
+                bar.querySelector('i').className = 'bi bi-check-circle-fill';
+                badge.className = 'status-badge status-active';
+                badgeText.textContent = 'System Active';
+            } else {
+                bar.className = 'status-bar status-bar-inactive';
+                bar.querySelector('i').className = 'bi bi-info-circle-fill';
+                badge.className = 'status-badge status-inactive';
+                badgeText.textContent = 'System Idle';
+            }
+        }
+
+        async function startSimulation() {
+            try {
+                const res = await fetch('/start_simulation', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    simulationRunning = true;
+                    startTime = Date.now();
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    setStatus('Network traffic simulation active. Monitoring for threats in real time...', true);
+                    uptimeInterval = setInterval(updateUptime, 1000);
+                    fetchResults();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function stopSimulation() {
+            try {
+                const res = await fetch('/stop_simulation', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    simulationRunning = false;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    setStatus('Simulation stopped. Network monitoring paused.', false);
+                    if (uptimeInterval) { clearInterval(uptimeInterval); uptimeInterval = null; }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchResults() {
+            if (!simulationRunning) return;
+            try {
+                const res = await fetch('/get_results');
+                const data = await res.json();
+                updateDashboard(data);
+                if (simulationRunning) setTimeout(fetchResults, 2000);
+            } catch (e) {
+                console.error(e);
+                if (simulationRunning) setTimeout(fetchResults, 5000);
+            }
+        }
+
+        function updateDashboard(data) {
+            document.getElementById('totalDetections').textContent = data.total_detections || 0;
+            const threatCount = data.results.filter(r => r.is_attack && r.confidence > 0.8).length;
+            document.getElementById('threatCount').textContent = threatCount;
+            updateTable(data.results);
+            updateChart(data.results);
+        }
+
+        function updateTable(results) {
+            const tbody = document.getElementById('detectionTable');
+            if (!results.length) {
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="bi bi-shield-slash"></i><p>No detections yet.</p></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = results.slice(-10).reverse().map(r => {
+                const pct = (r.confidence * 100).toFixed(1);
+                const statusBadge = r.is_attack
+                    ? `<span class="badge badge-threat"><i class="bi bi-exclamation-triangle-fill"></i> THREAT</span>`
+                    : `<span class="badge badge-safe"><i class="bi bi-shield-check-fill"></i> SAFE</span>`;
+                const typeBg = r.is_attack ? 'background:#FEF2F2;color:#DC2626;' : 'background:#F0FDF4;color:#16A34A;';
+                return `
+                    <tr>
+                        <td style="color:#64748B;">${r.timestamp}</td>
+                        <td class="mono">${r.source_ip}</td>
+                        <td class="mono">${r.dest_ip}</td>
+                        <td><span class="badge" style="${typeBg}">${r.attack_type}</span></td>
+                        <td style="font-weight:600; color:${r.is_attack ? '#DC2626' : '#16A34A'};">${pct}%</td>
+                        <td>${statusBadge}</td>
+                    </tr>`;
+            }).join('');
+        }
+
+        function updateChart(results) {
+            attackCounts = {};
+            results.forEach(r => {
+                const t = r.attack_type === 'BENIGN' ? 'BENIGN'
+                    : r.attack_type.includes('DoS') ? 'DoS'
+                    : r.attack_type.includes('PortScan') ? 'PortScan'
+                    : r.attack_type.includes('DDoS') ? 'DDoS'
+                    : r.attack_type.includes('Patator') ? 'Brute Force'
+                    : r.attack_type.includes('Web') ? 'Web Attack' : 'Other';
+                attackCounts[t] = (attackCounts[t] || 0) + 1;
+            });
+            attackChart.data.datasets[0].data = ['BENIGN','DoS','PortScan','DDoS','Brute Force','Web Attack'].map(t => attackCounts[t] || 0);
+            attackChart.update();
+        }
+
+        function clearLog() {
+            document.getElementById('detectionTable').innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="bi bi-shield-slash"></i><p>Log cleared. Continue monitoring for new detections.</p></div></td></tr>`;
+        }
+
+        async function updateThreshold() {
+            const val = document.getElementById('thresholdSlider').value;
+            document.getElementById('thresholdValue').textContent = Math.round(val * 100) + '%';
+            try {
+                await fetch('/set_threshold', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ threshold: parseFloat(val) })
+                });
+            } catch(e) {}
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startSimulation);
+        document.getElementById('stopBtn').addEventListener('click', stopSimulation);
+        document.getElementById('thresholdSlider').addEventListener('input', updateThreshold);
+
+        initializeChart();
+    </script>
+</body>
+</html>
